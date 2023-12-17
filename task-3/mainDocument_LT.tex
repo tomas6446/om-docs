@@ -1,0 +1,556 @@
+% Kompiuterijos katedros ir kibernetinio saugumo laboratorijos šablonas
+% Template of Department of Computer Science II or cybersecurity laboratory
+% Versija 1.3 2021 m. birželis [ March, 2015]
+
+\documentclass[a4paper,12pt,fleqn]{article}
+\input{allPacks}
+
+\newtoggle{inLithuanian}
+ %If the report is in Lithuanian, it is set to true; otherwise, change to false
+\settoggle{inLithuanian}{true}
+
+\usepackage[german=quotes]{csquotes}
+\DeclareQuoteAlias{german}{lithuanian}
+
+\usepackage{minted}
+\usemintedstyle{emacs}
+
+\usepackage{amsmath}
+
+\usepackage{spverbatim}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{polyglossia}
+
+\setmainlanguage{lithuanian}
+% \setmainfont{TeX Gyre Pagella} % You can choose a different font if you prefer
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{black},
+    tabsize=2,
+    aboveskip=1em,
+    belowskip=1em,
+    captionpos=b,
+    morekeywords={as, None, self},
+}
+
+%create file preface.tex for the preface text
+%if preface is needed set to true
+\newtoggle{needPreface}
+\settoggle{needPreface}{false}
+
+\newtoggle{signaturesOnTitlePage}
+\settoggle{signaturesOnTitlePage}{false}
+
+\graphicspath{ {./images/} }
+
+\input{macros}
+
+\begin{document}
+ % #1 -report type, #2 - title, #3-7 students, #8 - supervisor
+ \depttitlepage{Optimizavimo metodai. Vilniaus universitetas. 3 kursas.}
+ {Netiesinis programavimas}
+ {Tomas Kozakas} 
+ {}{}{}{}% students 2-5
+ {doc. dr. Arvydas Kregždė}
+
+\tableofcontents
+\pagebreak
+
+\section{Įvadas}
+Išspręsti stačiakampio gretasienio formos dėžės maksimalaus tūrio optimizavimo uždavinį, remiantis kvadratine baudos funkcija ir optimizavimo be apribojimų algoritmu. Apibrėžti tikslinę funkciją $f(\mathbf{X})$, lygybinių ir nelygybinių apribojimų funkcijas $g_i(\mathbf{X})$ ir $h_j(\mathbf{X})$ taip, kad optimizavimo uždavinys būtų formuluojamas kaip $\min f(\mathbf{X})$, su $g_i(\mathbf{X}) = 0$ ir $h_j(\mathbf{X}) \leq 0$. Apskaičiuoti funkcijų $f(\mathbf{X})$, $g_i(\mathbf{X})$, $h_j(\mathbf{X})$ reikšmes taškuose $\mathbf{X}_0 = (0, 0, 0)$, $\mathbf{X}_1 = (1, 1, 1)$, $\mathbf{X}_m = \left(\frac{a}{10}, \frac{b}{10}, \frac{c}{10}\right)$, kur $a = 0.3$, $b = 0$, $c = 0.6$.
+
+
+\pagebreak
+\section{Užduotys}
+\subsection{Tikslo funkcijos ir apribojimų aprašymas}
+Laboratoriniam darbui atlikti, kaip pagrindinę funkciją naudojame tūrio formulę. Šios užduoties tikslas yra rasti maksimalaus tūrio stačiakampio gretasienio formos dėžę, kai paviršiaus plotas yra lygus 1. Kintamieji $a$, $b$, ir $c$ yra kraštinių ilgiai, o $\mathbf{X} = (a,b,c)$.
+
+Tūrio funkcija:
+\begin{equation}
+V(\mathbf{X}) = abc
+\end{equation}
+
+Lygybinis apribojimas, kad paviršiaus plotas būtų lygus 1:
+\begin{equation}
+2ab + 2ac + 2bc - 1 = 0 \\
+g_1(\mathbf{X}) = 2ab + 2ac + 2bc - 1
+\end{equation}
+
+Nelygybiniai apribojimai, kad kraštinės būtų neneigiamos:
+\begin{equation}
+-a \leq 0 \\
+h_1(\mathbf{X}) = -a \\
+\end{equation}
+
+\begin{equation}
+-b \leq 0 \\
+h_2(\mathbf{X}) = -b \\
+\end{equation}
+
+
+\begin{equation}
+-c \leq 0 \\
+h_3(\mathbf{X}) = -c \\
+\end{equation}
+
+
+Kadangi reikia ieškoti funkcijos minimumo optimizavimo uždaviniui, mums reikia tūrio funkciją $f'(\mathbf{X})$ padauginti iš $-1$. Tuomet kaip tikslo funkciją gauname:
+\begin{equation}
+f(\mathbf{X}) = -V(\mathbf{X}) = -abc
+\end{equation}
+
+\subsection{Funkcijų reikšmės pradiniuose taškuose}
+
+Lentelėje \ref{table:fvals} pateikiamos funkcijų reikšmės skirtinguose taškuose: $\mathbf{X}_0$, $\mathbf{X}_1$ ir $\mathbf{X}_m$. Lentelėje matome, kaip kinta funkcijų $f(X)$, $g_1(X)$, $h_1(X)$, $h_2(X)$ ir $h_3(X)$ reikšmės šiuose taškuose.
+
+\begin{table}[H]
+  \centering
+  \caption{Funkcijų reikšmės taškuose $\mathbf{X}_0$, $\mathbf{X}_1$, $\mathbf{X}_m$.}
+  \def\arraystretch{1.2}
+  \setlength{\tabcolsep}{0.8em}
+  \begin{tabular}{l c c c}
+    \hline\hline
+    Funkcija & $X_0$  & $X_1$ & $X_m$ \\ [0.5ex]
+    \hline
+    $f(X)$   & 0   & -1   & 0    \\ 
+    $g_1(X)$ & -1  & 5    & -0.64      \\ 
+    $h_1(X)$ & 0   & -1   & -0.3      \\ 
+    $h_2(X)$ & 0   & -1   & 0      \\ 
+    $h_2(X)$ & 0   & -1   & -0.6      \\ 
+    \hline
+  \end{tabular}
+  \label{table:fvals}
+\end{table}
+
+\pagebreak
+\subsection{Kvadratinė baudos funkcija}
+Darbe norint efektyviai spręsti optimizavimo uždavinį, kuris apima tikslo funkciją ir apribojimus, galima taikyti baudos funkcijos metodą. Šis metodas leidžia įtraukti apribojimus į pačią tikslo funkciją, o tada minimizuoti naują gautą funkciją, vadinamą baudos funkcija.
+
+Šiame metode naudojama ši baudos funkcijos formulė:
+
+\begin{equation}
+B(\mathbf{X}, r) = f(\mathbf{X}) + \frac{1}{r} b(\mathbf{X}),
+\end{equation}
+
+kur $\mathbf{X}$ yra kintamųjų vektorius, $r$ yra teigiamas parametras, o $b(\mathbf{X})$ yra apribojimus apibūdinanti funkcija. Šiuo atveju, $b(\mathbf{X})$ sudaryta iš kvadratų sumos, apimančios tiek lygybinius, tiek nelygybinius apribojimus:
+
+\begin{equation}
+b(\mathbf{X}) = \sum (g_i(\mathbf{X}))^2 + \sum (\max(0, h_j(\mathbf{X})))^2
+\end{equation}
+
+Šiame uždavinyje tikslo funkcija yra $f(\mathbf{X}) = -abc$, o apribojimai yra $g_1(\mathbf{X}) = 2ab + 2ac + 2bc - 1$ (lygybinis apribojimas) ir $h_1(\mathbf{X}) = -a$, $h_2(\mathbf{X}) = -b$, $h_3(\mathbf{X}) = -c$ (nelygybiniai apribojimai). Įtraukus šiuos apribojimus į tikslo funkciją, gauname kvadratinę baudos funkciją:
+
+\begin{equation}
+\begin{split}
+B(\mathbf{X}, r) = -abc &+ \frac{1}{r}\left( (2ab + 2ac + 2bc - 1)^2 \right. \\
+&\qquad \left. + (\max(0, -a))^2 + (\max(0, -b))^2 + (\max(0, -c))^2 \right)
+\end{split}
+\end{equation}
+
+\pagebreak
+\subsection{Baudos daugiklio įtaka}
+
+Išnagrinėkime baudos daugiklio įtaką optimizavimo problemos sprendimui.
+Lentelėje \ref{table:rchange} pateikiamos baudos funkcijos reikšmės $B(X, r)$ skirtingoms baudos daugiklio $r$ reikšmėms.
+
+\begin{table}[H]
+\centering
+\caption{Funkcijų reikšmės taškuose $\mathbf{X}_0$, $\mathbf{X}_1$, $\mathbf{X}_m$.}
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.8em}
+\begin{tabular}{l c c c}
+\hline\hline
+$r$ & $B(X_0, r)$ & $B(X_1, r)$ & $B(X_m, r)$ \\ [0.5ex]
+\hline
+1 & 1 & 24 & 0.4096 \\
+5 & 0.2 & 4 & 0.08192 \\
+25 & 0.04 & 0 & 0.016384 \\
+0.20 & 5 & 124 & 2.048 \\
+0.04 & 25 & 624 & 10.24 \\
+\hline
+\end{tabular}
+\label{table:rchange}
+\end{table}
+
+Iš lentelės matome, kad didinant baudos daugiklį $r$, baudos funkcijos reikšmė mažėja. 
+Tai rodo, kad baudos funkcija yra labiau jautri tikslo funkcijos reikšmei, kai $r$ yra didelis, ir mažiau jautri apribojimų pažeidimui. 
+Kita vertus, mažinant $r$ reikšmę, baudos funkcijos reikšmė didėja, o tai rodo, kad baudos funkcija tampa labiau jautri apribojimų pažeidimui.
+Taigi, tinkamai parinkus baudos daugiklio reikšmę, galime gauti geresnius sprendimus optimizavimo problemoms su apribojimais.
+
+\pagebreak
+\subsection{Minimizavimas iš pradinių taškų ir palyginimas}
+
+Lentelėse \ref{table:baudos_funkcijos_iteracijos}, \ref{table:baudos_funkcijos_iteracijos2} ir \ref{table:baudos_funkcijos_iteracijos3} pateikiami trys skirtingi eksperimentai, kuriuose ieškoma minimumo taško. Kiekviename eksperimente pradinis taškas skiriasi. Kiekvienoje iteracijoje $r$ vertė buvo padalinta iš $2$.
+
+Pateiktame lentelėje \ref{table:baudos_funkcijos_iteracijos}, pradinis taškas buvo $[0, 0, 0]$, o baudos funkcijos reikšmė pradiniame taške, kai $r = 4$, buvo $0.25$. Po $14$ iteracijų buvo rasta minimumo reikšmė, esanti taške $[0.40828768, 0.40775098, 0.40871941]$ ir funkcijos iškvietimų skaičius buvo \textbf{1787}. Figūros plokštumų plotai $[ab = 0.3329594, ac = 0.3337501, bc = 0.3333114]$
+
+Antrame eksperimente, pateiktame lentelėje \ref{table:baudos_funkcijos_iteracijos2}, pradinis taškas buvo $[1, 1, 1]$, o baudos funkcijos reikšmė pradiniame taške, kai $r = 4$, buvo $5.25$. Po $8$ iteracijų buvo rasta minimumo reikšmė, esanti taške $[0.40943422, 0.40765769, 0.40853452]$ ir funkcijos iškvietimų skaičius buvo \textbf{1046}. Figūros plokštumų plotai $[ab = 0.3338180, ac = 0.3345360, bc = 0.333084]$
+
+Trečiame eksperimente, pateiktame lentelėje \ref{table:baudos_funkcijos_iteracijos3}, pradinis taškas buvo $[0.3, 0, 0.6]$, o baudos funkcijos reikšmė pradiniame taške, kai $r = 4$, buvo $0.1024$. Po $14$ iteracijų buvo rasta minimumo reikšmė, esanti taške $[0.40785265, 0.40858002, 0.40833956]$ ir funkcijos iškvietimų skaičius buvo \textbf{1827}. Figūros plokštumų plotai $[ab = 0.333280, ac = 0.333084, bc = 0.3336787]$
+
+Šie eksperimentai rodo, kad skirtingi pradiniai taškai ir baudos funkcijos reikšmės pradiniame taške įtakoja minimumo reikšmės taško paieškos procesą bei funkcijos iškvietimų skaičių.
+
+\begin{table}[H]
+\centering
+\caption{Rezultatai iš pradinio taško [0, 0, 0].}
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.8em}
+\begin{tabular}{l l l l}
+\hline\hline
+Po $N$ iteracijų & $X_{cur}$ & $B(X, r)$ reikšmė & r \\ [0.5ex]
+\hline
+0 & [0, 0, 0] & 0.25 & 4.0 \\
+1 & [0.45109815 0.452663 0.45203723]   & -0.0668882 & 2.0 \\
+2 & [0.43009741 0.42954712 0.42912024] & -0.0677705 & 1.0 \\
+3 & [0.41860132 0.41833472 0.41949627] & -0.0679658 & 0.5 \\
+4 & [0.41351964 0.41330444 0.41351997] & -0.0680457 & 0.25 \\
+5 & [0.41047339 0.41105064 0.41105293] & -0.0680380 & 0.125 \\
+6 & [0.4110629 0.4064538 0.41097677]   & -0.0680665 & 0.0625 \\
+7 & [0.40940756 0.40869683 0.40848711] & -0.0680581 & 0.03125 \\
+8 & [0.40861506 0.40918127 0.40788241] & -0.0680481 & 0.015625 \\
+9 & [0.4072142 0.40818651 0.40983177]  & -0.0680414 & 0.0078125 \\
+10 & [0.40654238 0.40887711 0.40952402] & -0.0680473 & 0.00390625 \\
+11 & [0.40836785 0.40829965 0.40821646] & -0.0680381 & 0.00195312 \\
+12 & [0.40896682 0.40587964 0.40996206] & -0.0680409 & 0.00097656 \\
+13 & [0.40899856 0.40721929 0.40855899] & -0.0680411 & 0.00048828 \\
+14 & [0.40828768 0.40775098 0.40871941] & -0.0680416 & 0.00024414 \\
+\hline
+\end{tabular}
+\label{table:baudos_funkcijos_iteracijos}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Rezultatai iš pradinio taško [1, 1, 1].}
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.8em}
+\begin{tabular}{l l l l}
+\hline\hline
+Po $N$ iteracijų  & $X_{cur}$ & $B(X, r)$ reikšmė & r \\ [0.5ex]
+\hline
+0 & [1, 1, 1] & 5.25 & 4.0 \\
+1 & [0.45172574 0.45315594 0.45099312] & -0.0668726 & 2.0 \\
+2 & [0.42990954 0.42901728 0.42992379] & -0.0677547 & 1.0 \\
+3 & [0.41858192 0.41926879 0.41850672] & -0.0679789 & 0.5 \\
+4 & [0.41319513 0.41395528 0.41326995] & -0.0680328 & 0.25 \\
+5 & [0.41102264 0.411362 0.4102215 ]   & -0.0680331 & 0.125 \\
+6 & [0.40977407 0.40914709 0.40970605] & -0.0680453 & 0.0625 \\
+7 & [0.40984733 0.40853279 0.40829879] & -0.0680445 & 0.03125 \\
+8 & [0.40943422 0.40765769 0.40853452] & -0.0680556 & 0.015625 \\
+\hline
+\end{tabular}
+\label{table:baudos_funkcijos_iteracijos2}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Rezultatai iš pradinio taško [0.3, 0, 0.6].}
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.8em}
+\begin{tabular}{l l l l}
+\hline\hline
+Po $N$ iteracijų & $X_{cur}$ taškas & $B(X, r)$ reikšmė & r \\ [0.5ex]
+\hline
+0 & [0.3, 0, 0.6] & 0.1024 & 4.0 \\
+1 & [0.45322815 0.45110821 0.4517186 ] & -0.066835 & 2.0 \\
+2 & [0.4288158  0.42968277 0.43055616] & -0.067716 & 1.0 \\
+3 & [0.41895082 0.41854158 0.41875084]  & -0.067998 & 0.5 \\
+4 & [0.41419995 0.4118816  0.41419675]  & -0.068056 & 0.25 \\
+5 & [0.41123907 0.40997347 0.41141211] & -0.068030 & 0.125 \\
+6 & [0.40895284 0.41053964 0.40923364] & -0.068028 & 0.0625 \\
+7 & [0.40703386 0.41193687 0.40777572] & -0.068033 & 0.03125 \\
+8 & [0.40863761 0.40946553 0.4076366 ]  & -0.0680382 & 0.015625 \\
+9 & [0.40744088 0.4094256  0.40841795]   & -0.0680319 & 0.0078125 \\
+10 & [0.40810721 0.4095275  0.40732333] & -0.0680458 & 0.00390625 \\
+\hline
+\end{tabular}
+\label{table:baudos_funkcijos_iteracijos3}
+\end{table}
+
+\pagebreak
+\section{Išvados}
+
+Iš lentelės \ref{table:rcomparison} matome, kad pradinio $r$ vertės dydis daro įtaką optimizavimo uždavinio sprendimo tikslumui, iteracijų ir funkcijos iškvietimų skaičiui. Didelė pradinė $r$ reikšmė reikalauja daugiau iteracijų ir funkcijos iškvietimų, tačiau padidina rasto minimumo taško tikslumą. Maža $r$ reikšmė sumažina skaičiavimų kiekį, bet blogina tikslumą (pavyzdžiui, kai $r = 0.002$). Todėl svarbu pasirinkti tinkamą $r$ reikšmę uždaviniui spręsti.
+
+Pavyzdžiui, pradedant su per maža $r$ reikšme, baudos funkcija $b(\mathbf{X})$ turi per didelę įtaką funkcijai $B(\mathbf{X}, r)$, todėl tikslo funkcijos $f(\mathbf{X})$ įtaka tampa per maža ir sumažėja metodo tikslumas (žr. \ref{table:rchange} lent.). Be to, naudotas deformuojamo simplekso metodas baudos funkcijos minimizavimui, kurio parametrų šiame laboratoriniame darbe nebuvo keičiama ar analizuojama. Tačiau, remiantis ankstesnių laboratorinių darbų rezultatais, žinoma, kad metodo parametrai taip pat turi didelę įtaką minimumo radimo greičiui ir juos pakoregavus galima pasiekti dar geresnius rezultatus.
+
+\begin{table}[H]
+\centering
+\caption{Baudos funkcijos iškvietimų skaičius keičiant $r$ reikšmes.}
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.8em}
+\begin{tabular}{l l l l l l}
+\hline\hline
+$r$ & $N_0$ & $N_1$ & $N_m$ & Minimumo taškas $X_m$ & Minimumo įvertis \\ [0.5ex]
+\hline
+0.002 & 778  & 801  & 1697 & [0.266088, 0.312913, 0.719774] & -0.067831 \\
+0.04  & 931  & 1027 & 806  & [0.4082834 , 0.40847578, 0.40801729] & -0.068042 \\
+0.2   & 1056 & 883  & 1306 & [0.40906589, 0.40715622, 0.40853397] & -0.068041 \\
+1     & 1013 & 1425 & 1707 & [0.40836954, 0.40814317, 0.40824085]  & -0.06804 \\
+5     & 1532 & 2066 & 1183 & [0.40776977, 0.40930797, 0.40827566] &  -0.068041 \\
+25    & 2120 & 2104 & 2151 & [0.40833682, 0.4079072 , 0.40851681] & -0.0680404  \\
+\hline
+\end{tabular}
+\label{table:rcomparison}
+\end{table}
+
+
+\pagebreak
+\section{Priedai}
+
+\subsection{Programos išvestis} \label{output}
+
+\begin{minted}[breaklines, fontfamily=tt, autogobble]{text}
+----------------------------------
+Pradinis taškas: [0, 0, 0]
+Baudos funkcija pradiniame taške, kai r = 4: 0.25
+Funkcijos reikšmė: 0
+Lygybinių apribojimų reikšmės:
+-1
+Nelygybinių apribojimų reikšmės:
+0
+0
+0
+---------------
+Kvadratinės baudos funkcijos reikšmė: 
+kai r = 0.002: 500.0
+kai r = 0.04: 25.0
+kai r = 0.2: 5.0
+kai r = 1: 1.0
+kai r = 5: 0.2
+kai r = 25: 0.04
+---------------
+Iteracija 1, dabartinis taškas: [0.45109815 0.452663   0.45203723], fig: ab = 0.4083908829461245, ac = 0.40782632289507925, bc = 0.40924105882775574, baudos funkcijos reikšmė: -0.06688822819120992, r: 2.0
+Iteracija 2, dabartinis taškas: [0.43009741 0.42954712 0.42912024], fig: ab = 0.36949421235759017, ac = 0.36912701239150125, bc = 0.3686547293630801, baudos funkcijos reikšmė: -0.06777059252551633, r: 1.0
+Iteracija 3, dabartinis taškas: [0.41860132 0.41833472 0.41949627], fig: ab = 0.3502309322704441, ac = 0.351203385107263, bc = 0.35097971241075093, baudos funkcijos reikšmė: -0.06796582416239083, r: 0.5
+Iteracija 4, dabartinis taškas: [0.41351964 0.41330444 0.41351997], fig: ab = 0.34181900642576524, ac = 0.3419972543122834, bc = 0.34181927873940465, baudos funkcijos reikšmė: -0.06804576864847156, r: 0.25
+Iteracija 5, dabartinis taškas: [0.41047339 0.41105064 0.41105293], fig: ab = 0.33745069908448055, ac = 0.33745258168762143, bc = 0.3379271421372036, baudos funkcijos reikšmė: -0.06803809177864133, r: 0.125
+Iteracija 6, dabartinis taškas: [0.4110629  0.4064538  0.41097677], fig: ab = 0.3341561545870218, ac = 0.33787460721061474, bc = 0.33408613687572675, baudos funkcijos reikšmė: -0.06806654529189124, r: 0.0625
+Iteracija 7, dabartinis taškas: [0.40940756 0.40869683 0.40848711], fig: ab = 0.3346471432893264, ac = 0.3344754203058761, bc = 0.3338947731257404, baudos funkcijos reikšmė: -0.06805818375775123, r: 0.03125
+Iteracija 8, dabartinis taškas: [0.40861506 0.40918127 0.40788241], fig: ab = 0.3343952610708697, ac = 0.3333337929657276, bc = 0.3337956825340534, baudos funkcijos reikšmė: -0.06804818358747113, r: 0.015625
+Iteracija 9, dabartinis taškas: [0.4072142  0.40818651 0.40983177], fig: ab = 0.3324386858813317, ac = 0.3337786326433328, bc = 0.33457560688917204, baudos funkcijos reikšmė: -0.06804149074957248, r: 0.0078125
+Iteracija 10, dabartinis taškas: [0.40654238 0.40887711 0.40952402], fig: ab = 0.3324517412699763, ac = 0.3329777343673001, bc = 0.3348899918281716, baudos funkcijos reikšmė: -0.06804735921579291, r: 0.00390625
+Iteracija 11, dabartinis taškas: [0.40836785 0.40829965 0.40821646], fig: ab = 0.3334729057378792, ac = 0.3334049584563607, bc = 0.3333492785201966, baudos funkcijos reikšmė: -0.06803814851086587, r: 0.001953125
+Iteracija 12, dabartinis taškas: [0.40896682 0.40587964 0.40996206], fig: ab = 0.3319826111065526, ac = 0.3353217658425884, bc = 0.33279050757697437, baudos funkcijos reikšmė: -0.0680409191318658, r: 0.0009765625
+Iteracija 13, dabartinis taškas: [0.40899856 0.40721929 0.40855899], fig: ab = 0.3331042062414572, ac = 0.33420007535422863, bc = 0.3327462011590757, baudos funkcijos reikšmė: -0.06804113926624207, r: 0.00048828125
+Iteracija 14, dabartinis taškas: [0.40828768 0.40775098 0.40871941], fig: ab = 0.33295940335215113, ac = 0.33375019703552977, bc = 0.33331147982712817, baudos funkcijos reikšmė: -0.06804166502821314, r: 0.000244140625
+Minimumo taškas ir funkcijos iškvietimų skaičius: (array([0.40828768, 0.40775098, 0.40871941]), 'fig: ab = 0.33295940335215113, ac = 0.33375019703552977, bc = 0.33331147982712817', 1787)
+----------------------------------
+Pradinis taškas: [1, 1, 1]
+Baudos funkcija pradiniame taške, kai r = 4: 5.25
+Funkcijos reikšmė: -1
+Lygybinių apribojimų reikšmės:
+5
+Nelygybinių apribojimų reikšmės:
+-1
+-1
+-1
+---------------
+Kvadratinės baudos funkcijos reikšmė: 
+kai r = 0.002: 12499.0
+kai r = 0.04: 624.0
+kai r = 0.2: 124.0
+kai r = 1: 24.0
+kai r = 5: 4.0
+kai r = 25: 0.0
+---------------
+Iteracija 1, dabartinis taškas: [0.45172574 0.45315594 0.45099312], fig: ab = 0.40940440104224596, ac = 0.40745040241816444, bc = 0.4087404210550803, baudos funkcijos reikšmė: -0.06687268174962951, r: 2.0
+Iteracija 2, dabartinis taškas: [0.42990954 0.42901728 0.42992379], fig: ab = 0.36887724331209054, ac = 0.3696566747153718, bc = 0.3688894650721629, baudos funkcijos reikšmė: -0.06775476713771512, r: 1.0
+Iteracija 3, dabartinis taškas: [0.41858192 0.41926879 0.41850672], fig: ab = 0.35099666780667343, ac = 0.35035869092833893, bc = 0.35093361121532196, baudos funkcijos reikšmė: -0.06797895928631069, r: 0.5
+Iteracija 4, dabartinis taškas: [0.41319513 0.41395528 0.41326995], fig: ab = 0.3420886113253487, ac = 0.34152226146623255, bc = 0.34215055541989364, baudos funkcijos reikšmė: -0.06803286690077152, r: 0.25
+Iteracija 5, dabartinis taškas: [0.41102264 0.411362   0.4102215 ], fig: ab = 0.3381581836273799, ac = 0.33722064600243545, bc = 0.33749907123847434, baudos funkcijos reikšmė: -0.06803315631163498, r: 0.125
+Iteracija 6, dabartinis taškas: [0.40977407 0.40914709 0.40970605], fig: ab = 0.33531573338078813, ac = 0.335773829568629, bc = 0.33526007645087325, baudos funkcijos reikšmė: -0.06804535576795298, r: 0.0625
+Iteracija 7, dabartinis taškas: [0.40984733 0.40853279 0.40829879], fig: ab = 0.3348721458390937, ac = 0.3346803387617155, bc = 0.33360688301590946, baudos funkcijos reikšmė: -0.06804453432989806, r: 0.03125
+Iteracija 8, dabartinis taškas: [0.40943422 0.40765769 0.40853452], fig: ab = 0.33381801707563624, ac = 0.33453602564365986, bc = 0.33308447906294597, baudos funkcijos reikšmė: -0.06805565379598953, r: 0.015625
+Minimumo taškas ir funkcijos iškvietimų skaičius: (array([0.40943422, 0.40765769, 0.40853452]), 'fig: ab = 0.33381801707563624, ac = 0.33453602564365986, bc = 0.33308447906294597', 1046)
+----------------------------------
+Pradinis taškas: [0.3, 0.0, 0.6]
+Baudos funkcija pradiniame taške, kai r = 4: 0.1024
+Funkcijos reikšmė: -0.0
+Lygybinių apribojimų reikšmės:
+-0.64
+Nelygybinių apribojimų reikšmės:
+-0.3
+-0.0
+-0.6
+---------------
+Kvadratinės baudos funkcijos reikšmė: 
+kai r = 0.002: 204.8
+kai r = 0.04: 10.24
+kai r = 0.2: 2.048
+kai r = 1: 0.4096
+kai r = 5: 0.08192
+kai r = 25: 0.016384000000000003
+---------------
+Iteracija 1, dabartinis taškas: [0.45322815 0.45110821 0.4517186 ], fig: ab = 0.40890987417770963, ac = 0.4094631677952071, bc = 0.407547933306295, baudos funkcijos reikšmė: -0.06683595406050791, r: 2.0
+Iteracija 2, dabartinis taškas: [0.4288158  0.42968277 0.43055616], fig: ab = 0.3685095210669501, ac = 0.36925856521558337, bc = 0.3700051285408251, baudos funkcijos reikšmė: -0.06771695620391018, r: 1.0
+Iteracija 3, dabartinis taškas: [0.41895082 0.41854158 0.41875084], fig: ab = 0.3506966725405406, ac = 0.35087200814970015, bc = 0.35052927244849535, baudos funkcijos reikšmė: -0.06799886886372804, r: 0.5
+Iteracija 4, dabartinis taškas: [0.41419995 0.4118816  0.41419675], fig: ab = 0.34120267639997903, ac = 0.34312054582800244, bc = 0.34120003544630806, baudos funkcijos reikšmė: -0.06805677254369943, r: 0.25
+Iteracija 5, dabartinis taškas: [0.41123907 0.40997347 0.41141211], fig: ab = 0.337194215018412, ac = 0.33837746456576023, bc = 0.3373360943497488, baudos funkcijos reikšmė: -0.06803000602601506, r: 0.125
+Iteracija 6, dabartinis taškas: [0.40895284 0.41053964 0.40923364], fig: ab = 0.33578269791448917, ac = 0.3347145147040661, bc = 0.33601325790791303, baudos funkcijos reikšmė: -0.0680286079301244, r: 0.0625
+Iteracija 7, dabartinis taškas: [0.40703386 0.41193687 0.40777572], fig: ab = 0.33534450894607254, ac = 0.3319570454372129, bc = 0.3359557052040898, baudos funkcijos reikšmė: -0.06803316179780206, r: 0.03125
+Iteracija 8, dabartinis taškas: [0.40863761 0.40946553 0.4076366 ], fig: ab = 0.33464602780101393, ac = 0.33315129154860923, bc = 0.3338262760372699, baudos funkcijos reikšmė: -0.06803827713552106, r: 0.015625
+Iteracija 9, dabartinis taškas: [0.40744088 0.4094256  0.40841795], fig: ab = 0.33363345375547215, ac = 0.3328123378529231, bc = 0.3344335309374271, baudos funkcijos reikšmė: -0.0680319751973477, r: 0.0078125
+Iteracija 10, dabartinis taškas: [0.40810721 0.4095275  0.40732333], fig: ab = 0.3342622532309918, ac = 0.33246317069421955, bc = 0.33362020940272624, baudos funkcijos reikšmė: -0.0680458238638667, r: 0.00390625
+Iteracija 11, dabartinis taškas: [0.40824621 0.40837889 0.40822198], fig: ab = 0.3334382741141764, ac = 0.33331015335598113, bc = 0.3334184806861431, baudos funkcijos reikšmė: -0.06804415252434717, r: 0.001953125
+Iteracija 12, dabartinis taškas: [0.40913925 0.40718826 0.40846554], fig: ab = 0.3331933985922085, ac = 0.3342385725955395, bc = 0.3326447451613546, baudos funkcijos reikšmė: -0.06804298443831922, r: 0.0009765625
+Iteracija 13, dabartinis taškas: [0.40785265 0.40858002 0.40833956], fig: ab = 0.33328088540668477, ac = 0.3330847405385726, bc = 0.33367876568718885, baudos funkcijos reikšmė: -0.06804184862951138, r: 0.00048828125
+Iteracija 14, dabartinis taškas: [0.40785265 0.40858002 0.40833956], fig: ab = 0.33328088540668477, ac = 0.3330847405385726, bc = 0.33367876568718885, baudos funkcijos reikšmė: -0.0680378128058314, r: 0.000244140625
+Minimumo taškas ir funkcijos iškvietimų skaičius: (array([0.40785265, 0.40858002, 0.40833956]), 'fig: ab = 0.33328088540668477, ac = 0.3330847405385726, bc = 0.33367876568718885', 1827)
+
+\end{minted}
+
+\pagebreak
+\subsection{Programos išeitinis kodas}
+
+\begin{minted}[breaklines, fontfamily=tt, linenos, autogobble]{Python}
+from typing import Callable
+
+import numpy as np
+
+from nelder_mead import nelder_mead, find_best_points_index
+
+
+# Funkcija, kurią bandoma minimizuoti
+def f(x: list[float]) -> float:
+    return -1 * x[0] * x[1] * x[2]
+
+
+def eq_constraint(x: list[float]) -> float:
+    return 2 * (x[0] * x[1] + x[1] * x[2] + x[0] * x[2]) - 1
+
+
+def ineq_constraint1(x: list[float]) -> float:
+    return -1 * x[0]
+
+
+def ineq_constraint2(x: list[float]) -> float:
+    return -1 * x[1]
+
+
+def ineq_constraint3(x: list[float]) -> float:
+    return -1 * x[2]
+
+
+# Baudos funkcija lygybėms ir nelygybėms
+def penalty(
+        x: list[float],
+        equality_constraints: list[Callable[[list[float]], float]],
+        inequality_constraints: list[Callable[[list[float]], float]],
+) -> float:
+    temp_sum = [0, 0]
+
+    for equality_constraint in equality_constraints:
+        temp_sum[0] += equality_constraint(x) ** 2
+
+    for inequality_constraint in inequality_constraints:
+        temp_sum[1] += max(0.0, inequality_constraint(x)) ** 2
+
+    return temp_sum[0] + temp_sum[1]
+
+
+# Padidinta tikslinė funkcija su baudos sąlyga
+def b(
+        x: list[float],
+        r: float,
+        equality_constraints: list[Callable[[list[float]], float]],
+        inequality_constraint: list[Callable[[list[float]], float]],
+):
+    return f(x) + (1 / r) * penalty(x, equality_constraints, inequality_constraint)
+
+
+# Optimizavimo funkcija naudojant Nelder-Mead algoritmą
+def optimize(
+        starting_point: list[float],
+        equality_constraints: list[Callable[[list[float]], float]],
+        inequality_constraints: list[Callable[[list[float]], float]],
+):
+    r = 4
+    total_function_calls = 0
+
+    current_point = starting_point
+    print("---------------")
+    for i in range(1, 100):
+        # Susapnuojama padidinta tikslinė funkcija optimizacijai
+        b_wrapped = lambda x: b(x, r, equality_constraints, inequality_constraints)
+
+        # Naudojamas Nelder-Mead algoritmas
+        simplex, _, function_calls = nelder_mead(b_wrapped, current_point)
+        new_point = simplex[find_best_points_index(simplex)]["coords"]
+        r = r / 2  # r dynaminis pritaikymas
+        total_function_calls += function_calls
+
+        f1 = 2 * new_point[0] * new_point[1]
+        f2 = 2 * new_point[0] * new_point[2]
+        f3 = 2 * new_point[1] * new_point[2]
+        print(
+            f"Iteracija {i}, dabartinis taškas: {new_point}, fig: ab = {f1}, ac = {f2}, bc = {f3}, baudos funkcijos reikšmė: {b_wrapped(new_point)}, r: {r}"
+        )
+
+        # Patikrinama, ar pasiekta konvergencija
+        if np.linalg.norm(new_point - current_point) <= 0.001:
+            current_point = new_point
+            break
+        current_point = new_point
+
+    return current_point, f"fig: ab = {f1}, ac = {f2}, bc = {f3}", total_function_calls
+
+
+def main():
+    points = [[0, 0, 0], [1, 1, 1], [3 / 10, 0 / 10, 6 / 10]]
+    eqc = [eq_constraint]
+    ineqc = [ineq_constraint1, ineq_constraint2, ineq_constraint3]
+
+    for point in points:
+        print("----------------------------------")
+        print(f"Pradinis taškas: {point}")
+        print(f"Baudos funkcija pradiniame taške, kai r = 4: {b(point, 4, eqc, ineqc)}")
+        print(f"Funkcijos reikšmė: {f(point)}")
+
+        print("Lygybinių apribojimų reikšmės:")
+        print(f"{eq_constraint(point)}")
+
+        print("Nelygybinių apribojimų reikšmės:")
+        print(f"{ineq_constraint1(point)}")
+        print(f"{ineq_constraint2(point)}")
+        print(f"{ineq_constraint3(point)}")
+
+        print("---------------")
+        print("Kvadratinės baudos funkcijos reikšmė: ")
+        print(f"kai r = 0.002: {b(point, 0.002, eqc, ineqc)}")
+        print(f"kai r = 0.04: {b(point, 0.04, eqc, ineqc)}")
+        print(f"kai r = 0.2: {b(point, 0.2, eqc, ineqc)}")
+        print(f"kai r = 1: {b(point, 1, eqc, ineqc)}")
+        print(f"kai r = 5: {b(point, 5, eqc, ineqc)}")
+        print(f"kai r = 25: {b(point, 25, eqc, ineqc)}")
+
+        print(
+            f"Minimumo taškas ir funkcijos iškvietimų skaičius: {optimize(point, eqc, ineqc)}"
+        )
+
+
+if __name__ == "__main__":
+    main()
+
+\end{minted}
+
+\end{document}

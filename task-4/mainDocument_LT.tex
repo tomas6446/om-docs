@@ -1,0 +1,582 @@
+\documentclass[a4paper,12pt,fleqn]{article}
+\input{allPacks}
+
+\newtoggle{inLithuanian}
+\settoggle{inLithuanian}{true}
+
+\usepackage{minted}
+\usemintedstyle{emacs}
+\usepackage{amsmath}
+\usepackage{spverbatim}
+
+\usepackage{booktabs}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{polyglossia}
+\setmainlanguage{lithuanian}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\newenvironment{conditions}
+  {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
+  {\end{tabular}\par\vspace{\belowdisplayskip}}
+
+\newtoggle{needPreface}
+\settoggle{needPreface}{false}
+
+\newtoggle{signaturesOnTitlePage}
+\settoggle{signaturesOnTitlePage}{false}
+
+\graphicspath{ {./images/} }
+
+\input{macros}
+
+\usepackage[german=quotes]{csquotes}
+\DeclareQuoteAlias{german}{lithuanian}
+
+\begin{document}
+ \depttitlepage{Optimizavimo metodai. Informatika. 3 kursas.}
+ {Tiesinis programavimas}
+ {Tomas Kozakas} 
+ {}{}{}{}
+ {doc. dr. Arvydas Kregždė}
+
+\tableofcontents
+\pagebreak
+
+\section{Įvadas}
+\subsection{Uždavinio aprašymas}
+Šiame darbe nagrinėjama tiesinio programavimo problema, kuriai spręsti naudojamas simplekso algoritmas. Simplekso algoritmas yra matematinis optimizavimo metodas, naudojamas tiesinio programavimo problemoms spręsti.
+Uždavinys formuluojamas taip:
+
+Tikslo funkcija, kurią reikia minimizuoti:
+\begin{align}
+2x_1 - 3x_2 - 5x_4
+\end{align}
+
+Sprendimas turi atitikti šiuos apribojimus:
+\begin{equation}
+\begin{aligned}
+-x_1 + x_2 - x_3 - x_4 &\leq 8, \\
+2x_1 + 4x_2 &\leq 10, \\
+x_3 + x_4 &\leq 3, \\
+x_i &\geq 0.
+\end{aligned}
+\end{equation}
+
+Pirmiausia tiesinio programavimo problemą perrašom matriciniu pavidalu. Pradinės konstantos 8, 10, 3 yra apribojimų konstantos ir konstantos a, b ir c yra studento knygelės numerio \enquote{1x1xabc} skaitmenys individualam uždaviniui.
+
+Tikslo funkcija, kurią reikia minimizuoti:
+\begin{align}
+2x_1 - 3x_2 - 5x_4
+\end{align}
+
+Asmeninis sprendimas turi atitikti šiuos apribojimus:
+\begin{equation}
+\begin{aligned}
+-x_1 + x_2 - x_3 - x_4 &\leq 3, \\
+2x_1 + 4x_2 &\leq 0, \\
+x_3 + x_4 &\leq 6, \\
+x_i &\geq 0.
+\end{aligned}
+\end{equation}
+
+\pagebreak
+\section{Uždavinio suvedimas į standartinę formą}
+
+Pirmasis žingsnis sprendžiant optimizavimo uždavinį yra suvesti jį į standartinę formą. 
+Standartinėje formoje uždavinį galima užrašyti matriciniu pavidalu, kaip parodyta \ref{eq:matrix} lygtyje. Čia $C$ yra tikslinės funkcijos koeficientų matrica, $A$ yra apribojimų koeficientų matrica, $B$ yra apribojimų vertės, o $X$ yra kintamųjų matrica, kurią siekiame optimizuoti.
+
+\begin{equation} \label{eq:matrix}
+\begin{aligned}
+\min \quad & CX, \\
+\quad & AX = B, \\
+& X \geq 0.
+\end{aligned}
+\end{equation}
+
+Matricos:
+
+\begin{equation}
+C = \begin{pmatrix}
+2 & -3 & 0 & -5 & 0 & 0 & 0
+\end{pmatrix}
+\end{equation}
+
+\begin{equation}
+A = \begin{pmatrix}
+-1 & 1 & -1 & 1 & 1 & 0 & 0 \\
+2 & 4 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 1 & 1 & 0 & 0 & 1
+\end{pmatrix}
+\end{equation}
+
+\begin{equation}
+B = \begin{pmatrix}
+8 & 10 & 3
+\end{pmatrix}
+\end{equation}
+
+Atvaizduotos visą informaciją \ref{tab:first-table} lentelėje:
+
+\begin{table}[h!]
+\centering
+\caption{Suformuota lentelė.}
+\label{tab:first-table}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+0 & 2 & -3 & 0 & -5 & 0 & 0 & 0 \\ \midrule
+8 & -1 & 1 & -1 & -1 & 1 & 0 & 0 \\
+10 & 2 & 4 & 0 & 0 & 0 & 1 & 0 \\
+3 & 0 & 0 & 1 & 1 & 0 & 0 & 1 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\pagebreak
+\section{Uždavinio sprendimas}
+\subsection{Pagrindinio uždavinio sprendimas}
+
+Sprendinys buvo rastas per dvi iteracijas. Pradinės reikšmės, reikšmės po pirmosios ir antrosios iteracijos pateikiamos lentelėse \ref{tab:generic_task_table}, \ref{tab:generic_task_table1} ir \ref{tab:generic_task_table2} atitinkamai. Po dviejų iteracijų algoritmas pateikė šiuos rezultatus:
+
+\begin{enumerate}
+\item Minimumo taškas: $\left(0, 2.5, 0, 3.0\right)$
+\item Minimali tikslo funkcijos reikšmė: $-22.5$
+\item Bazė: $\{2, 4, 5\}$
+\end{enumerate}
+
+\begin{table}[h!]
+\centering
+\caption{Pradinė uždavinio lentelė.}
+\label{tab:generic_task_table}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+0 & 2 & -3 & 0 & -5 & 0 & 0 & 0 \\ \midrule
+8 & -1 & 1 & -1 & -1 & 1 & 0 & 0 \\
+10 & 2 & 4 & 0 & 0 & 0 & 1 & 0 \\
+3 & 0 & 0 & 1 & 1 & 0 & 0 & 1 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Pagrindinio uždavinio lentelė po pirmosios iteracijos.}
+\label{tab:generic_task_table1}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+15 & 2.0 & -3.0 & 5.0 & 0.0 & 0.0 & 0.0 & 5.0 \\ \midrule
+11 & -1.0 & 1.0 & 0.0 & 0.0 & 1.0 & 0.0 & 1.0 \\
+10 & 2.0 & 4.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
+3 & 0.0 & 0.0 & 1.0 & 1.0 & 0.0 & 0.0 & 1.0 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Pagrindinio uždavinio lentelė po antrosios iteracijos.}
+\label{tab:generic_task_table2}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+22.5 & 3.5 & 0.0 & 5.0 & 0.0 & 0.0 & 0.75 & 5.0 \\ \midrule
+8.5 & -1.5 & 0.0 & 0.0 & 0.0 & 1.0 & -0.25 & 1.0 \\
+2.5 & 0.5 & 1.0 & 0.0 & 0.0 & 0.0 & 0.25 & 0.0 \\
+3.0 & 0.0 & 0.0 & 1.0 & 1.0 & 0.0 & 0.0 & 1.0 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\pagebreak
+\subsection{Asmeninio uždavinio sprendimas}
+
+Algoritmas rado optimalų uždavinio sprendinį per dvi iteracijas. Pradinės reikšmės bei reikšmės po pirmosios ir antrosios iteracijos atvaizduotos lentelėse \ref{tab:personal_task_table}, \ref{tab:personal_task_table1} ir \ref{tab:personal_task_table2} atitinkamai. Pasibaigus iteracijoms, algoritmas pateikė tokius rezultatus:
+
+\begin{enumerate}
+    \item Minimumo taškas: $\left(0, 0, 0, 6.0\right)$
+    \item Minimali tikslo funkcijos reikšmė: $-30.0$
+    \item Bazė: $\{2, 4, 5\}$
+\end{enumerate}
+
+\begin{table}[h!]
+\centering
+\caption{Asmeninio uždavinio lentelė.}
+\label{tab:personal_task_table}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+0 & 2 & -3 & 0 & -5 & 0 & 0 & 0 \\ \midrule
+3 & -1 & 1 & -1 & -1 & 1 & 0 & 0 \\
+0 & 2 & 4 & 0 & 0 & 0 & 1 & 0 \\
+6 & 0 & 0 & 1 & 1 & 0 & 0 & 1 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Asmeninio uždavinio lentelė po pirmos iteracijos.}
+\label{tab:personal_task_table1}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+30.0 & 2.0 & -3.0 & 5.0 & 0.0 & 0.0 & 0.0 & 5.0 \\ \midrule
+9.0 & -1.0 & 1.0 & 0.0 & 0.0 & 1.0 & 0.0 & 1.0 \\
+0.0 & 2.0 & 4.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
+6.0 & 0.0 & 0.0 & 1.0 & 1.0 & 0.0 & 0.0 & 1.0 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Asmeninio uždavinio lentelė po antros iteracijos.}
+\label{tab:personal_task_table2}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+30.0 & 3.5 & 0.0 & 5.0 & 0.0 & 0.0 & 0.75 & 5.0 \\ \midrule
+9.0 & -1.5 & 0.0 & 0.0 & 0.0 & 1.0 & -0.25 & 1.0 \\
+0.0 & 0.5 & 1.0 & 0.0 & 0.0 & 0.0 & 0.25 & 0.0 \\
+6.0 & 0.0 & 0.0 & 1.0 & 1.0 & 0.0 & 0.0 & 1.0 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\pagebreak
+\section{Palyginimas ir išvados}
+
+Lentelėje yra suvesti algoritmo rezultatai (žr. \ref{tab:results} lent.), gauti sprendžiant du skirtingus uždavinius.
+Nors gauti minimumo taškai ir minimalios tikslo funkcijos reikšmės skiriasi, abu uždaviniai pasižymi ta pačia baze - $\{2, 4, 5\}$.
+
+Apibendrinus, galime teigti, kad suprogramuotas simplekso algoritmas sėkmingai išsprendė tiek pagrindinį, tiek asmeninį uždavinius. Abu uždaviniai buvo išspręsti efektyviai, rasta minimali funkcijų reikšmė, optimalūs sprendimai ir atitinkamos bazės.
+
+\begin{table}[h!]
+\centering
+\caption{Algoritmo rezultatai}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Uždavinys & Minimumo taškas & Minimali tikslo funkcijos reikšmė & Bazė \\ \midrule
+Pagrindinis & $\left(0, 2.5, 0, 3.0\right)$ & $-22.5$ & $\{2, 4, 5\}$ \\
+Asmeninis & $\left(0, 0, 0, 6.0\right)$ & $-30.0$ & $\{2, 4, 5\}$ \\ \bottomrule
+\end{tabular}
+\label{tab:results}
+\end{table}
+
+\pagebreak
+\section{Priedai}
+\subsection{Programos išvestis} \label{output}
+
+\begin{minted}[breaklines, fontfamily=tt, autogobble]{text}
+=====================================
+Optimizing the generic task:
+=====================================
+Current table:
+[    2.00 |    -3.00 |     0.00 |    -5.00 |     0.00 |     0.00 |     0.00],     0.00
+[   -1.00 |     1.00 |    -1.00 |    -1.00 |     1.00 |     0.00 |     0.00],     8.00
+[    2.00 |     4.00 |     0.00 |     0.00 |     0.00 |     1.00 |     0.00],    10.00
+[    0.00 |     0.00 |     1.00 |     1.00 |     0.00 |     0.00 |     1.00],     3.00
+Smallest objective function coefficient (column index): 3
+Smallest non-negative ratio index (row index): 3
+Pivot: 1
+[2, -3, 0, -5, 0, 0, 0], 0
+[-1, 1, -1, -1, 1, 0, 0], 8
+[2, 4, 0, 0, 0, 1, 0], 10
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 3.0
+---------
+Ratio: -5.0
+Ratio: -1.0
+Ratio: 0.0
+[2.0, -3.0, 5.0, 0.0, 0.0, 0.0, 5.0], 15.0
+[-1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0], 11.0
+[2.0, 4.0, 0.0, 0.0, 0.0, 1.0, 0.0], 10.0
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 3.0
+=====================================
+Waiting for input. Press any key...
+
+
+=====================================
+Current table:
+[    2.00 |    -3.00 |     5.00 |     0.00 |     0.00 |     0.00 |     5.00],    15.00
+[   -1.00 |     1.00 |     0.00 |     0.00 |     1.00 |     0.00 |     1.00],    11.00
+[    2.00 |     4.00 |     0.00 |     0.00 |     0.00 |     1.00 |     0.00],    10.00
+[    0.00 |     0.00 |     1.00 |     1.00 |     0.00 |     0.00 |     1.00],     3.00
+Smallest objective function coefficient (column index): 1
+Smallest non-negative ratio index (row index): 2
+Pivot: 4.0
+[2.0, -3.0, 5.0, 0.0, 0.0, 0.0, 5.0], 15.0
+[-1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0], 11.0
+[0.5, 1.0, 0.0, 0.0, 0.0, 0.25, 0.0], 2.5
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 3.0
+---------
+Ratio: -3.0
+Ratio: 1.0
+Ratio: 0.0
+[3.5, 0.0, 5.0, 0.0, 0.0, 0.75, 5.0], 22.5
+[-1.5, 0.0, 0.0, 0.0, 1.0, -0.25, 1.0], 8.5
+[0.5, 1.0, 0.0, 0.0, 0.0, 0.25, 0.0], 2.5
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 3.0
+=====================================
+Waiting for input. Press any key...
+
+
+
+=====================================
+Final Tableau:
+[    3.50 |     0.00 |     5.00 |     0.00 |     0.00 |     0.75 |     5.00],    22.50
+[   -1.50 |     0.00 |     0.00 |     0.00 |     1.00 |    -0.25 |     1.00],     8.50
+[    0.50 |     1.00 |     0.00 |     0.00 |     0.00 |     0.25 |     0.00],     2.50
+[    0.00 |     0.00 |     1.00 |     1.00 |     0.00 |     0.00 |     1.00],     3.00
+=====================================
+Final Variables: 
+x1 =   0.0000 | x2 =   2.5000 | x3 =   0.0000 | x4 =   3.0000 | x5 =   8.5000 | x6 =   0.0000 | x7 =   0.0000
+
+Basis Indices: x2, x4, x5
+Optimum Value: -22.5000
+
+Optimized Results:
+Point:     0.00 |     2.50 |     0.00 |     3.00
+Base: x2 | x4 | x5
+Optimum:   -22.50
+=====================================
+
+
+=====================================
+Optimizing the personal task:
+=====================================
+Current table:
+[    2.00 |    -3.00 |     0.00 |    -5.00 |     0.00 |     0.00 |     0.00],     0.00
+[   -1.00 |     1.00 |    -1.00 |    -1.00 |     1.00 |     0.00 |     0.00],     3.00
+[    2.00 |     4.00 |     0.00 |     0.00 |     0.00 |     1.00 |     0.00],     0.00
+[    0.00 |     0.00 |     1.00 |     1.00 |     0.00 |     0.00 |     1.00],     6.00
+Smallest objective function coefficient (column index): 3
+Smallest non-negative ratio index (row index): 3
+Pivot: 1
+[2, -3, 0, -5, 0, 0, 0], 0
+[-1, 1, -1, -1, 1, 0, 0], 3
+[2, 4, 0, 0, 0, 1, 0], 0
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 6.0
+---------
+Ratio: -5.0
+Ratio: -1.0
+Ratio: 0.0
+[2.0, -3.0, 5.0, 0.0, 0.0, 0.0, 5.0], 30.0
+[-1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0], 9.0
+[2.0, 4.0, 0.0, 0.0, 0.0, 1.0, 0.0], 0.0
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 6.0
+=====================================
+Waiting for input. Press any key...
+
+=====================================
+Current table:
+[    2.00 |    -3.00 |     5.00 |     0.00 |     0.00 |     0.00 |     5.00],    30.00
+[   -1.00 |     1.00 |     0.00 |     0.00 |     1.00 |     0.00 |     1.00],     9.00
+[    2.00 |     4.00 |     0.00 |     0.00 |     0.00 |     1.00 |     0.00],     0.00
+[    0.00 |     0.00 |     1.00 |     1.00 |     0.00 |     0.00 |     1.00],     6.00
+Smallest objective function coefficient (column index): 1
+Smallest non-negative ratio index (row index): 2
+Pivot: 4.0
+[2.0, -3.0, 5.0, 0.0, 0.0, 0.0, 5.0], 30.0
+[-1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0], 9.0
+[0.5, 1.0, 0.0, 0.0, 0.0, 0.25, 0.0], 0.0
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 6.0
+---------
+Ratio: -3.0
+Ratio: 1.0
+Ratio: 0.0
+[3.5, 0.0, 5.0, 0.0, 0.0, 0.75, 5.0], 30.0
+[-1.5, 0.0, 0.0, 0.0, 1.0, -0.25, 1.0], 9.0
+[0.5, 1.0, 0.0, 0.0, 0.0, 0.25, 0.0], 0.0
+[0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0], 6.0
+=====================================
+Waiting for input. Press any key...
+
+
+=====================================
+Final Tableau:
+[    3.50 |     0.00 |     5.00 |     0.00 |     0.00 |     0.75 |     5.00],    30.00
+[   -1.50 |     0.00 |     0.00 |     0.00 |     1.00 |    -0.25 |     1.00],     9.00
+[    0.50 |     1.00 |     0.00 |     0.00 |     0.00 |     0.25 |     0.00],     0.00
+[    0.00 |     0.00 |     1.00 |     1.00 |     0.00 |     0.00 |     1.00],     6.00
+=====================================
+Final Variables: 
+x1 =   0.0000 | x2 =   0.0000 | x3 =   0.0000 | x4 =   6.0000 | x5 =   9.0000 | x6 =   0.0000 | x7 =   0.0000
+
+Basis Indices: x2, x4, x5
+Optimum Value: -30.0000
+
+Optimized Results:
+Point:     0.00 |     0.00 |     0.00 |     6.00
+Base: x2 | x4 | x5
+Optimum:   -30.00
+=====================================
+\end{minted}
+
+\pagebreak
+\subsection{Programos kodas} \label{source}
+\begin{minted}[breaklines, fontfamily=tt, linenos, autogobble]{Python}
+import numpy as np
+
+verbose = True
+
+
+class TableRow:
+    def __init__(self, cf: [float], fval: float):
+        self.cf = cf
+        self.fval = fval
+
+    def __str__(self) -> str:
+        return f"{self.cf}, {self.fval}"
+
+
+def pivoting(index: int, full_table: [TableRow], tolerance=1e-5) -> int:
+    min_ratio = float("inf")
+    pivot_row_index = -1
+
+    for i, row in enumerate(full_table[1:]):
+        if row.cf[index] > tolerance:
+            ratio = row.fval / row.cf[index]
+            # Bland's Rule: choose the smallest index if there's a tie To avoid cycling, Bland's Rule suggests always
+            # choosing the smallest index that satisfies the pivot selection criteria.
+            if ratio < min_ratio or (abs(ratio - min_ratio) < tolerance and i < pivot_row_index):
+                min_ratio = ratio
+                pivot_row_index = i
+
+    if pivot_row_index == -1:
+        # Handle the case where no valid pivot is found
+        return -1
+
+    return pivot_row_index + 1  # +1 to account for the objective function row
+
+
+def adjust_table(
+        full_table: [TableRow], pivot_row_index: int, pivot_col_index: int
+) -> None:
+    pivot = full_table[pivot_row_index].cf[pivot_col_index]
+
+    # Divide each element in the pivot row by the pivot.
+    # Pivot element should become 1.
+    pivot_row = full_table[pivot_row_index]
+    pivot_row.fval = pivot_row.fval / pivot
+    pivot_row.cf = [x / pivot for x in pivot_row.cf]
+
+    if verbose:
+        for row in full_table:
+            print(row)
+        print("---------")
+
+    for i in range(len(full_table)):
+        if i == pivot_row_index:
+            continue
+
+        same_col_as_pivot_el = full_table[i].cf[pivot_col_index]
+        new_pivot = full_table[pivot_row_index].cf[pivot_col_index]
+        ratio = same_col_as_pivot_el / new_pivot
+        if verbose:
+            print(f"Ratio: {ratio}")
+
+        full_table[i].cf = [
+            x - ratio * pivot_row_el
+            for x, pivot_row_el in zip(full_table[i].cf, pivot_row.cf)
+        ]
+
+        full_table[i].fval = full_table[i].fval - ratio * pivot_row.fval
+
+    if verbose:
+        for row in full_table:
+            print(row)
+
+
+def optimize_linear_program(full_table: [TableRow], var_count: int) -> None:
+    function_row = full_table[0]
+
+    while not all(num >= 0 for num in function_row.cf):
+        if verbose:
+            print("=====================================")
+            print("Current table:")
+            print_table(full_table)
+
+        pivot_col_index = np.argmin(function_row.cf)
+        if verbose:
+            print(
+                f"Smallest objective function coefficient (column index): {pivot_col_index}"
+            )
+
+        pivot_row_index = pivoting(pivot_col_index, full_table)
+        if verbose:
+            print(f"Smallest non-negative ratio index (row index): {pivot_row_index}")
+
+        pivot = full_table[pivot_row_index].cf[pivot_col_index]
+        if verbose:
+            print(f"Pivot: {pivot}")
+
+        adjust_table(full_table, pivot_row_index, pivot_col_index)
+
+        if verbose:
+            print("=====================================")
+            input("Waiting for input. Press any key...\n\n")
+
+    column_sums = [
+        sum(row.cf[i] for row in full_table) for i in range(len(full_table[0].cf))
+    ]
+    base_indexes = [index for index, value in enumerate(column_sums) if value == 1]
+
+    final_vars = [0] * var_count
+
+    for row in full_table[1:]:
+        for i in base_indexes:
+            if row.cf[i] == 1:
+                final_vars[i] = row.fval
+
+    if verbose:
+        print("=====================================")
+        print("Final Tableau:")
+        print_table(full_table)
+
+    print("=====================================")
+    print("Final Variables: ")
+    print(' | '.join(f"x{i + 1} = {val:8.4f}" for i, val in enumerate(final_vars[:var_count])))
+
+    print(f"\nBasis Indices: {', '.join(f'x{index + 1}' for index in base_indexes)}")
+    print(f"Optimum Value: {-function_row.fval:8.4f}")
+
+    return final_vars, [x + 1 for x in base_indexes], -function_row.fval
+
+
+def print_table(full_table):
+    for row in full_table:
+        formatted_row = ' | '.join(f"{val:8.2f}" for val in row.cf)
+        print(f"[{formatted_row}], {row.fval:8.2f}")
+
+
+def print_results(res: [[float], [float], float], true_var_count: int):
+    print("\nOptimized Results:")
+    print(f"Point: {' | '.join(f'{val:8.2f}' for val in res[0][:true_var_count])}")
+    print(f"Base: {' | '.join(f'x{index}' for index in res[1])}")
+    print(f"Optimum: {res[2]:8.2f}")
+    print("=====================================")
+
+
+def main() -> None:
+    # We have 7 variables in total. 4 are given and 3 are slack.
+    # Left most element of the list is a constant.
+    # First row must be an objective function.
+    task = [
+        TableRow([2, -3, 0, -5, 0, 0, 0], 0),  # <- Objective function
+        TableRow([-1, 1, -1, -1, 1, 0, 0], 8),  # <- Constraints
+        TableRow([2, 4, 0, 0, 0, 1, 0], 10),
+        TableRow([0, 0, 1, 1, 0, 0, 1], 3),
+    ]
+    print("=====================================")
+    print("Optimizing the generic task:")
+    print_results(optimize_linear_program(task, 7), 4)
+
+    task_personal = [
+        TableRow([2, -3, 0, -5, 0, 0, 0], 0),
+        TableRow([-1, 1, -1, -1, 1, 0, 0], 3),
+        TableRow([2, 4, 0, 0, 0, 1, 0], 0),
+        TableRow([0, 0, 1, 1, 0, 0, 1], 6),
+    ]
+
+    print("\n\n=====================================")
+    print("Optimizing the personal task:")
+    print_results(optimize_linear_program(task_personal, 7), 4)
+
+
+if __name__ == "__main__":
+    main()
+\end{minted}
+
+\end{document}
